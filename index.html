@@ -1,0 +1,536 @@
+<div class="gserp-tool">
+<h2 class="sr-only">Tool to view Google search results (SERP) from different countries — type a query, select a country, and Google will open with accurate geo-parameters</h2>
+
+<div class="gserp-card">
+  <div class="gserp-header">
+    <div class="gserp-icon-wrap" id="gserpIconWrap">
+      <span class="gserp-icon" id="gserpFlag">🌐</span>
+    </div>
+    <div>
+      <div class="gserp-title">Google Search by Country</div>
+      <div class="gserp-subtitle">Enter a query, pick a country, get results with real gl/hl parameters</div>
+    </div>
+  </div>
+
+  <div class="gserp-field">
+    <label for="q">Search query</label>
+    <div class="gserp-input-wrap">
+      <i class="ti ti-search gserp-input-icon" aria-hidden="true"></i>
+      <input type="text" id="q" placeholder="e.g. best running shoes" autocomplete="off" />
+    </div>
+  </div>
+
+  <div class="gserp-field">
+    <label for="country">Country</label>
+    <div class="gserp-input-wrap">
+      <i class="ti ti-map-pin gserp-input-icon" aria-hidden="true"></i>
+      <select id="country"></select>
+      <i class="ti ti-chevron-down gserp-select-caret" aria-hidden="true"></i>
+    </div>
+    <div class="gserp-geo-tag">
+      <span class="gserp-geo-label">GEO</span>
+      <span class="gserp-geo-value" id="geoValue">gl=in · hl=en · google.co.in</span>
+    </div>
+  </div>
+
+  <div class="gserp-divider" aria-hidden="true">
+    <span class="gserp-divider-dot"></span>
+    <span class="gserp-divider-line"></span>
+    <span class="gserp-divider-dot"></span>
+  </div>
+
+  <button id="go" type="button" class="gserp-btn">
+    <i class="ti ti-search" aria-hidden="true"></i>
+    <span>Open Google Search</span>
+  </button>
+
+  <p class="gserp-note">Note: these gl/hl parameters give approximate local results (not as exact as a VPN).</p>
+
+  <div id="result" class="gserp-result" hidden>
+    <div class="gserp-result-top">
+      <i class="ti ti-circle-check gserp-result-check" aria-hidden="true"></i>
+      <div class="gserp-result-text">
+        <div class="gserp-result-title"></div>
+        <div class="gserp-result-sub"></div>
+      </div>
+    </div>
+    <a id="resultLink" class="gserp-result-link" target="_blank" rel="noopener">
+      <span>Open results tab</span>
+      <i class="ti ti-external-link" aria-hidden="true"></i>
+    </a>
+    <p class="gserp-result-hint">Google doesn't allow its search results to be embedded on other sites, so results open in a new tab — this panel just confirms it happened.</p>
+  </div>
+</div>
+</div>
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500;600&display=swap');
+
+.gserp-tool {
+  --gserp-accent: var(--accent-color, #2A5CB8);
+  --gserp-accent-2: var(--accent-color-2, #14396F);
+  --gserp-gold: #C89A46;
+  --gserp-bg: var(--surface-color, #FCFBF8);
+  --gserp-border: var(--border-color, #E3E7F0);
+  --gserp-text: var(--text-primary, #14172B);
+  --gserp-text-sec: var(--text-secondary, #5B6178);
+  --gserp-text-muted: var(--text-muted, #8C93A6);
+  --gserp-radius: 18px;
+  display: flex;
+  justify-content: center;
+  font-family: 'Inter', system-ui, sans-serif;
+  color: var(--gserp-text);
+  padding: 8px;
+}
+
+.gserp-tool .sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0;
+}
+
+.gserp-card {
+  width: 100%;
+  max-width: 440px;
+  margin: 0 auto;
+  background: var(--gserp-bg);
+  border: 1px solid var(--gserp-border);
+  border-radius: var(--gserp-radius);
+  padding: 26px 24px 20px;
+  box-shadow: 0 1px 2px rgba(20, 23, 43, 0.05), 0 14px 32px rgba(20, 23, 43, 0.08);
+}
+
+.gserp-header {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 22px;
+}
+
+.gserp-icon-wrap {
+  position: relative;
+  flex-shrink: 0;
+  width: 46px;
+  height: 46px;
+}
+
+.gserp-icon-wrap::after {
+  content: "";
+  position: absolute;
+  inset: -5px;
+  border-radius: 50%;
+  border: 1.5px dashed var(--gserp-gold);
+  opacity: 0.85;
+}
+
+.gserp-icon {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  color: #fff;
+  background: linear-gradient(135deg, var(--gserp-accent), var(--gserp-accent-2));
+  transform-origin: 50% 50%;
+}
+
+@keyframes gserp-stamp {
+  0%   { transform: scale(1) rotate(0deg); }
+  30%  { transform: scale(0.86) rotate(-6deg); }
+  55%  { transform: scale(1.08) rotate(3deg); }
+  75%  { transform: scale(0.97) rotate(-1deg); }
+  100% { transform: scale(1) rotate(0deg); }
+}
+
+.gserp-icon-wrap.gserp-stamp-pulse .gserp-icon {
+  animation: gserp-stamp 0.5s cubic-bezier(.36,.07,.19,.97);
+}
+
+.gserp-title {
+  font-family: 'Space Grotesk', 'Inter', sans-serif;
+  font-size: 16.5px;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+  line-height: 1.3;
+}
+
+.gserp-subtitle {
+  font-size: 12.5px;
+  color: var(--gserp-text-sec);
+  margin-top: 3px;
+  line-height: 1.4;
+}
+
+.gserp-field {
+  margin-bottom: 14px;
+}
+
+.gserp-field label {
+  display: block;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--gserp-text-sec);
+  margin-bottom: 6px;
+}
+
+.gserp-input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.gserp-input-icon {
+  position: absolute;
+  left: 12px;
+  font-size: 15px;
+  color: var(--gserp-text-muted);
+  pointer-events: none;
+}
+
+.gserp-input-wrap input,
+.gserp-input-wrap select {
+  width: 100%;
+  height: 42px;
+  padding: 0 14px 0 36px;
+  border: 1px solid var(--gserp-border);
+  border-radius: 10px;
+  background: transparent;
+  color: var(--gserp-text);
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  appearance: none;
+  -webkit-appearance: none;
+  box-sizing: border-box;
+}
+
+.gserp-input-wrap select {
+  padding-right: 34px;
+  cursor: pointer;
+}
+
+.gserp-select-caret {
+  position: absolute;
+  right: 12px;
+  font-size: 14px;
+  color: var(--gserp-text-muted);
+  pointer-events: none;
+}
+
+.gserp-input-wrap input::placeholder {
+  color: var(--gserp-text-muted);
+}
+
+.gserp-input-wrap input:focus,
+.gserp-input-wrap select:focus {
+  border-color: var(--gserp-accent);
+  box-shadow: 0 0 0 3px rgba(42, 92, 184, 0.16);
+}
+
+.gserp-input-wrap input.gserp-shake {
+  animation: gserp-shake 0.32s ease;
+  border-color: #e5484d;
+}
+
+@keyframes gserp-shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-4px); }
+  75% { transform: translateX(4px); }
+}
+
+.gserp-geo-tag {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  padding: 6px 10px;
+  border: 1px dashed var(--gserp-border);
+  border-radius: 8px;
+  background: rgba(200, 154, 70, 0.06);
+}
+
+.gserp-geo-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: var(--gserp-gold);
+}
+
+.gserp-geo-value {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11.5px;
+  color: var(--gserp-text-sec);
+  word-break: break-all;
+}
+
+.gserp-divider {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 18px 0 16px;
+}
+
+.gserp-divider-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--gserp-border);
+  flex-shrink: 0;
+}
+
+.gserp-divider-line {
+  flex: 1;
+  height: 0;
+  border-top: 1.5px dashed var(--gserp-border);
+}
+
+.gserp-btn {
+  width: 100%;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: none;
+  border-radius: 10px;
+  background: linear-gradient(135deg, var(--gserp-accent), var(--gserp-accent-2));
+  color: #fff;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.12s ease, box-shadow 0.12s ease, opacity 0.12s ease;
+  box-shadow: 0 4px 14px rgba(20, 57, 111, 0.28);
+}
+
+.gserp-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(20, 57, 111, 0.36);
+}
+
+.gserp-btn:active {
+  transform: translateY(0);
+  opacity: 0.92;
+}
+
+.gserp-btn:focus-visible {
+  outline: 2px solid var(--gserp-gold);
+  outline-offset: 2px;
+}
+
+.gserp-note {
+  font-size: 12px;
+  color: var(--gserp-text-muted);
+  margin: 12px 0 0;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.gserp-result {
+  margin-top: 16px;
+  padding: 14px 16px;
+  border: 1px solid var(--gserp-border);
+  border-top: 2px dashed var(--gserp-gold);
+  border-radius: 12px;
+  background: rgba(200, 154, 70, 0.07);
+  animation: gserp-fade-in 0.22s ease;
+}
+
+@keyframes gserp-fade-in {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.gserp-result-top {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.gserp-result-check {
+  color: #12b76a;
+  font-size: 18px;
+  margin-top: 1px;
+  flex-shrink: 0;
+}
+
+.gserp-result-title {
+  font-family: 'Space Grotesk', 'Inter', sans-serif;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--gserp-text);
+  word-break: break-word;
+}
+
+.gserp-result-sub {
+  font-size: 12px;
+  color: var(--gserp-text-sec);
+  margin-top: 2px;
+}
+
+.gserp-result-link {
+  margin-top: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--gserp-accent);
+  text-decoration: none;
+}
+
+.gserp-result-link:hover {
+  text-decoration: underline;
+}
+
+.gserp-result-hint {
+  margin: 10px 0 0;
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: var(--gserp-text-muted);
+}
+
+@media (max-width: 480px) {
+  .gserp-card { padding: 20px 18px 16px; border-radius: 14px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gserp-result, .gserp-btn, .gserp-input-wrap input.gserp-shake, .gserp-icon-wrap.gserp-stamp-pulse .gserp-icon {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+</style>
+
+<script>
+(function(){
+  var countries = [
+    ["India","in","en","google.co.in"],
+    ["United States","us","en","google.com"],
+    ["United Kingdom","gb","en","google.co.uk"],
+    ["Canada","ca","en","google.ca"],
+    ["Australia","au","en","google.com.au"],
+    ["Germany","de","de","google.de"],
+    ["France","fr","fr","google.fr"],
+    ["Spain","es","es","google.es"],
+    ["Italy","it","it","google.it"],
+    ["Brazil","br","pt-BR","google.com.br"],
+    ["Japan","jp","ja","google.co.jp"],
+    ["South Korea","kr","ko","google.co.kr"],
+    ["Russia","ru","ru","google.ru"],
+    ["Mexico","mx","es","google.com.mx"],
+    ["Netherlands","nl","nl","google.nl"],
+    ["UAE","ae","ar","google.ae"],
+    ["Saudi Arabia","sa","ar","google.com.sa"],
+    ["Singapore","sg","en","google.com.sg"],
+    ["South Africa","za","en","google.co.za"],
+    ["Indonesia","id","id","google.co.id"],
+    ["Pakistan","pk","en","google.com.pk"],
+    ["Bangladesh","bd","bn","google.com.bd"],
+    ["Philippines","ph","en","google.com.ph"],
+    ["Thailand","th","th","google.co.th"],
+    ["Vietnam","vn","vi","google.com.vn"],
+    ["Turkey","tr","tr","google.com.tr"],
+    ["Poland","pl","pl","google.pl"],
+    ["Sweden","se","sv","google.se"],
+    ["Switzerland","ch","de","google.ch"],
+    ["Belgium","be","nl","google.be"],
+    ["Argentina","ar","es","google.com.ar"],
+    ["Egypt","eg","ar","google.com.eg"],
+    ["Nigeria","ng","en","google.com.ng"],
+    ["New Zealand","nz","en","google.co.nz"],
+    ["Ireland","ie","en","google.ie"],
+    ["Portugal","pt","pt","google.pt"],
+    ["Israel","il","he","google.co.il"],
+    ["Malaysia","my","ms","google.com.my"],
+    ["Hong Kong","hk","zh-TW","google.com.hk"]
+  ];
+
+  function ccToFlag(cc) {
+    try {
+      return cc.toUpperCase().replace(/./g, function(ch){
+        return String.fromCodePoint(127397 + ch.charCodeAt(0));
+      });
+    } catch (e) {
+      return "";
+    }
+  }
+
+  var sel = document.getElementById('country');
+  var qInput = document.getElementById('q');
+  var goBtn = document.getElementById('go');
+  var resultBox = document.getElementById('result');
+  var resultLink = document.getElementById('resultLink');
+  var resultTitle = document.querySelector('#result .gserp-result-title');
+  var resultSub = document.querySelector('#result .gserp-result-sub');
+  var flagIcon = document.getElementById('gserpFlag');
+  var iconWrap = document.getElementById('gserpIconWrap');
+  var geoValue = document.getElementById('geoValue');
+
+  if (!sel || !qInput || !goBtn) { return; }
+
+  countries.forEach(function(c, i){
+    var opt = document.createElement('option');
+    opt.value = i;
+    opt.textContent = ccToFlag(c[1]) + "  " + c[0];
+    if (c[0] === "India") opt.selected = true;
+    sel.appendChild(opt);
+  });
+
+  function renderGeo() {
+    var c = countries[sel.value];
+    var f = ccToFlag(c[1]);
+    if (flagIcon) { flagIcon.textContent = f || "🌐"; }
+    if (geoValue) { geoValue.textContent = "gl=" + c[1] + " · hl=" + c[2] + " · " + c[3]; }
+  }
+
+  function stampEffect() {
+    if (!iconWrap) return;
+    iconWrap.classList.remove('gserp-stamp-pulse');
+    void iconWrap.offsetWidth;
+    iconWrap.classList.add('gserp-stamp-pulse');
+  }
+
+  renderGeo();
+  sel.addEventListener('change', function(){
+    renderGeo();
+    stampEffect();
+  });
+
+  function runSearch() {
+    var q = qInput.value.trim();
+    if (!q) {
+      qInput.classList.remove('gserp-shake');
+      void qInput.offsetWidth;
+      qInput.classList.add('gserp-shake');
+      qInput.focus();
+      return;
+    }
+    var c = countries[sel.value];
+    var url = "https://" + c[3] + "/search?q=" + encodeURIComponent(q) + "&gl=" + c[1] + "&hl=" + c[2] + "&pws=0&num=20";
+
+    var win = null;
+    try {
+      win = window.open(url, "_blank", "noopener");
+    } catch (e) {
+      win = null;
+    }
+
+    if (resultBox && resultTitle && resultSub && resultLink) {
+      resultTitle.textContent = ccToFlag(c[1]) + " \u201C" + q + "\u201D \u2014 " + c[0];
+      resultSub.textContent = win ? "Results opened in a new tab" : "Popup might be blocked — open manually below";
+      resultLink.href = url;
+      resultBox.hidden = false;
+    }
+  }
+
+  goBtn.addEventListener('click', runSearch);
+  qInput.addEventListener('keydown', function(e){
+    if (e.key === 'Enter') runSearch();
+  });
+})();
+</script>
