@@ -1415,23 +1415,8 @@
     </div>
     <div class="gserp-geo-tag">
       <span class="gserp-geo-label">GEO</span>
-      <span class="gserp-geo-value" id="geoValue">gl=in · hl=en · google.co.in · device=desktop</span>
+      <span class="gserp-geo-value" id="geoValue">gl=in · hl=en · google.co.in</span>
     </div>
-  </div>
-
-  <div class="gserp-field">
-    <label id="deviceLabel">Device</label>
-    <div class="gserp-device-toggle" id="deviceToggle" role="radiogroup" aria-labelledby="deviceLabel">
-      <button type="button" class="gserp-device-btn is-active" id="deviceDesktopBtn" data-device="desktop" role="radio" aria-checked="true">
-        <i class="ti ti-device-desktop" aria-hidden="true"></i>
-        <span>Desktop</span>
-      </button>
-      <button type="button" class="gserp-device-btn" id="deviceMobileBtn" data-device="mobile" role="radio" aria-checked="false">
-        <i class="ti ti-device-mobile" aria-hidden="true"></i>
-        <span>Mobile</span>
-      </button>
-    </div>
-    <p class="gserp-device-hint" id="deviceHint" hidden>Google chooses the mobile vs. desktop layout based on the device/browser that opens the link, not the URL. This opens a phone-sized window as a close approximation — for the exact real mobile SERP, use the "Copy link for phone" button below and open it on your phone.</p>
   </div>
 
   <div class="gserp-divider" aria-hidden="true">
@@ -1442,7 +1427,7 @@
 
   <button id="go" type="button" class="gserp-btn">
     <i class="ti ti-search" aria-hidden="true"></i>
-    <span id="goBtnText">Open Google Search (Desktop)</span>
+    <span>Open Google Search</span>
   </button>
 
   <p class="gserp-note">Note: these gl/hl parameters give approximate local results (not as exact as a VPN).</p>
@@ -1462,10 +1447,6 @@
       <span>Open results tab</span>
       <i class="ti ti-external-link" aria-hidden="true"></i>
     </a>
-    <button type="button" id="copyLinkBtn" class="gserp-copy-link-btn">
-      <i class="ti ti-copy" aria-hidden="true"></i>
-      <span id="copyLinkBtnText">Copy link for phone</span>
-    </button>
     <p class="gserp-result-hint">Google doesn't allow its search results to be embedded on other sites, so results open in a new tab — this panel just confirms it happened.</p>
   </div>
 </div>
@@ -1812,58 +1793,6 @@
   word-break: break-all;
 }
 
-.gserp-device-toggle {
-  display: flex;
-  gap: 8px;
-}
-
-.gserp-device-btn {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  height: 42px;
-  border: 1px solid var(--gserp-border);
-  border-radius: 10px;
-  background: transparent;
-  color: var(--gserp-text-sec);
-  font-family: 'Inter', sans-serif;
-  font-size: 13.5px;
-  font-weight: 500;
-  cursor: pointer;
-  box-sizing: border-box;
-  transition: border-color .15s ease, box-shadow .15s ease, color .15s ease, background .15s ease;
-}
-
-.gserp-device-btn i {
-  font-size: 16px;
-}
-
-.gserp-device-btn:hover {
-  border-color: var(--gserp-accent);
-  color: var(--gserp-text);
-}
-
-.gserp-device-btn:focus-visible {
-  outline: none;
-  border-color: var(--gserp-accent);
-  box-shadow: 0 0 0 3px rgba(42, 92, 184, 0.16);
-}
-
-.gserp-device-btn.is-active {
-  border-color: var(--gserp-accent);
-  color: #fff;
-  background: linear-gradient(135deg, var(--gserp-accent), var(--gserp-accent-2));
-}
-
-.gserp-device-hint {
-  margin: 8px 0 0;
-  font-size: 11.5px;
-  line-height: 1.5;
-  color: var(--gserp-text-muted);
-}
-
 .gserp-divider {
   display: flex;
   align-items: center;
@@ -1995,34 +1924,6 @@
   text-decoration: underline;
 }
 
-.gserp-copy-link-btn {
-  margin: 8px 0 0;
-  margin-left: 14px;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 4px 10px;
-  border: 1px dashed var(--gserp-border);
-  border-radius: 8px;
-  background: transparent;
-  color: var(--gserp-text-sec);
-  font-family: 'Inter', sans-serif;
-  font-size: 12px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: border-color .15s ease, color .15s ease;
-}
-
-.gserp-copy-link-btn:hover {
-  border-color: var(--gserp-accent);
-  color: var(--gserp-accent);
-}
-
-.gserp-copy-link-btn.is-copied {
-  border-color: #1a9e6e;
-  color: #1a9e6e;
-}
-
 .gserp-result-hint {
   margin: 10px 0 0;
   font-size: 11.5px;
@@ -2044,6 +1945,24 @@
 
 <script>
 (function(){
+  // Adds a small search/globe favicon, but only if the host page doesn't
+  // already define one — so this never overrides a site's real favicon
+  // when the widget is embedded, while still giving a nice tab icon when
+  // this file is opened/previewed on its own.
+  (function ensureFavicon(){
+    if (document.querySelector('link[rel~="icon"]')) { return; }
+    var svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">'
+      + '<rect width="64" height="64" rx="14" fill="#2A5CB8"/>'
+      + '<circle cx="27" cy="27" r="14" fill="none" stroke="#ffffff" stroke-width="6"/>'
+      + '<line x1="37" y1="37" x2="50" y2="50" stroke="#ffffff" stroke-width="7" stroke-linecap="round"/>'
+      + '</svg>';
+    var link = document.createElement('link');
+    link.rel = 'icon';
+    link.type = 'image/svg+xml';
+    link.href = 'data:image/svg+xml,' + encodeURIComponent(svg);
+    document.head.appendChild(link);
+  })();
+
   var countries = [
     ["India","in","en","google.co.in"],
     ["United States","us","en","google.com"],
@@ -2097,15 +2016,12 @@
 
   var qInput = document.getElementById('q');
   var goBtn = document.getElementById('go');
-  var goBtnText = document.getElementById('goBtnText');
   var resultBox = document.getElementById('result');
   var resultLink = document.getElementById('resultLink');
   var resultFlagUse = document.querySelector('#resultFlagIcon use');
   var resultTitleText = document.getElementById('resultTitleText');
   var resultSub = document.querySelector('#result .gserp-result-sub');
   var geoValue = document.getElementById('geoValue');
-  var copyLinkBtn = document.getElementById('copyLinkBtn');
-  var copyLinkBtnText = document.getElementById('copyLinkBtnText');
 
   var iconWrap = document.getElementById('gserpIconWrap');
   var headerFlagUse = document.querySelector('#gserpFlagIcon use');
@@ -2118,19 +2034,10 @@
   var listbox = document.getElementById('countryListbox');
   var emptyMsg = document.getElementById('countryEmpty');
 
-  var deviceToggle = document.getElementById('deviceToggle');
-  var deviceDesktopBtn = document.getElementById('deviceDesktopBtn');
-  var deviceMobileBtn = document.getElementById('deviceMobileBtn');
-  var deviceHint = document.getElementById('deviceHint');
-
-  if (!qInput || !goBtn || !trigger || !panel || !searchInput || !listbox || !deviceDesktopBtn || !deviceMobileBtn) { return; }
+  if (!qInput || !goBtn || !trigger || !panel || !searchInput || !listbox) { return; }
 
   var currentIndex = 0;
   countries.forEach(function(c, i){ if (c[0] === "India") currentIndex = i; });
-
-  var currentDevice = 'desktop';
-  var lastUrl = '';
-  var copyResetTimer = null;
 
   function makeFlagSvg(cc, cls) {
     var svg = document.createElementNS(SVG_NS, "svg");
@@ -2185,7 +2092,7 @@
 
   function renderGeo() {
     var c = countries[currentIndex];
-    if (geoValue) { geoValue.textContent = "gl=" + c[1] + " · hl=" + c[2] + " · " + c[3] + " · device=" + currentDevice; }
+    if (geoValue) { geoValue.textContent = "gl=" + c[1] + " · hl=" + c[2] + " · " + c[3]; }
   }
 
   function stampEffect() {
@@ -2211,30 +2118,6 @@
     renderGeo();
     stampEffect();
   }
-
-  // Sets the Desktop/Mobile button styling, the hint text, and the CTA label.
-  function updateDeviceUI() {
-    var isMobile = currentDevice === 'mobile';
-
-    deviceDesktopBtn.classList.toggle('is-active', !isMobile);
-    deviceDesktopBtn.setAttribute('aria-checked', String(!isMobile));
-    deviceMobileBtn.classList.toggle('is-active', isMobile);
-    deviceMobileBtn.setAttribute('aria-checked', String(isMobile));
-
-    if (deviceHint) { deviceHint.hidden = !isMobile; }
-    if (goBtnText) { goBtnText.textContent = "Open Google Search (" + (isMobile ? "Mobile" : "Desktop") + ")"; }
-
-    renderGeo();
-  }
-
-  function setDevice(device) {
-    if (device !== 'mobile' && device !== 'desktop') { return; }
-    currentDevice = device;
-    updateDeviceUI();
-  }
-
-  deviceDesktopBtn.addEventListener('click', function(){ setDevice('desktop'); });
-  deviceMobileBtn.addEventListener('click', function(){ setDevice('mobile'); });
 
   function openListbox() {
     searchInput.value = '';
@@ -2290,7 +2173,6 @@
 
   buildOptions('');
   renderGeo();
-  updateDeviceUI();
 
   trigger.addEventListener('click', function(){
     if (panel.hidden) { openListbox(); } else { closeListbox(); }
@@ -2347,43 +2229,6 @@
     return "https://" + c[3] + "/search?q=" + encodeURIComponent(q) + "&gl=" + c[1] + "&hl=" + c[2] + "&pws=0&num=20";
   }
 
-  function copyToClipboard(text) {
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      return navigator.clipboard.writeText(text);
-    }
-    return new Promise(function(resolve, reject){
-      try {
-        var ta = document.createElement('textarea');
-        ta.value = text;
-        ta.style.position = 'fixed';
-        ta.style.opacity = '0';
-        document.body.appendChild(ta);
-        ta.focus();
-        ta.select();
-        document.execCommand('copy');
-        document.body.removeChild(ta);
-        resolve();
-      } catch (err) {
-        reject(err);
-      }
-    });
-  }
-
-  if (copyLinkBtn) {
-    copyLinkBtn.addEventListener('click', function(){
-      if (!lastUrl) { return; }
-      copyToClipboard(lastUrl).then(function(){
-        copyLinkBtn.classList.add('is-copied');
-        if (copyLinkBtnText) { copyLinkBtnText.textContent = 'Link copied!'; }
-        if (copyResetTimer) { window.clearTimeout(copyResetTimer); }
-        copyResetTimer = window.setTimeout(function(){
-          copyLinkBtn.classList.remove('is-copied');
-          if (copyLinkBtnText) { copyLinkBtnText.textContent = 'Copy link for phone'; }
-        }, 1600);
-      }).catch(function(){ /* clipboard unavailable — link is still shown below */ });
-    });
-  }
-
   function runSearch() {
     var q = qInput.value.trim();
     if (!q) {
@@ -2395,29 +2240,18 @@
     }
     var c = countries[currentIndex];
     var url = buildUrl(q, c);
-    lastUrl = url;
-    var isMobile = currentDevice === 'mobile';
 
     var win = null;
     try {
-      var features = isMobile
-        ? "noopener,width=430,height=900,menubar=no,toolbar=no,location=yes,resizable=yes,scrollbars=yes"
-        : "noopener";
-      win = window.open(url, "_blank", features);
+      win = window.open(url, "_blank", "noopener");
     } catch (e) {
       win = null;
     }
 
     if (resultBox && resultTitleText && resultSub && resultLink) {
       setFlag(resultFlagUse, c[1]);
-      resultTitleText.textContent = "\u201C" + q + "\u201D \u2014 " + c[0] + " \u00B7 " + (isMobile ? "Mobile" : "Desktop");
-      if (win) {
-        resultSub.textContent = isMobile
-          ? "Opened in a phone-sized window (approximation) — for the real mobile SERP, use \u201CCopy link for phone\u201D below"
-          : "Results opened in a new tab";
-      } else {
-        resultSub.textContent = "Popup might be blocked — open manually below";
-      }
+      resultTitleText.textContent = "\u201C" + q + "\u201D \u2014 " + c[0];
+      resultSub.textContent = win ? "Results opened in a new tab" : "Popup might be blocked — open manually below";
       resultLink.href = url;
       resultBox.hidden = false;
     }
