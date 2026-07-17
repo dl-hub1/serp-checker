@@ -7878,8 +7878,7 @@
 
       li.addEventListener('click', function(){
         selectCountry(i);
-        closeListbox();
-        trigger.focus();
+        closeListboxAndFocusTrigger();
       });
 
       listbox.appendChild(li);
@@ -7932,6 +7931,18 @@
     trigger.setAttribute('aria-expanded', 'false');
   }
 
+  // When we close the listbox and then move focus back to the trigger
+  // programmatically, the trigger's 'focus' listener (below) would normally
+  // re-open the listbox on touch/mobile browsers where the programmatic
+  // focus is treated as :focus-visible. This flag suppresses that re-open.
+  var suppressAutoOpen = false;
+  function closeListboxAndFocusTrigger() {
+    suppressAutoOpen = true;
+    closeListbox();
+    trigger.focus();
+    suppressAutoOpen = false;
+  }
+
   function getActiveIdx() {
     var opts = listbox.children;
     for (var i = 0; i < opts.length; i++) {
@@ -7980,6 +7991,7 @@
   // Auto-open the dropdown when the trigger receives keyboard focus
   // (:focus-visible), so keyboard/tab users don't need a second key press.
   trigger.addEventListener('focus', function(e){
+    if (suppressAutoOpen) { return; }
     if (e.target.matches(':focus-visible')) { openListbox(); }
   });
 
@@ -8006,17 +8018,16 @@
         break;
       case 'Enter':
         e.preventDefault();
-        if (panel.hidden) { openListbox(); } else { selectActiveOption(); closeListbox(); trigger.focus(); }
+        if (panel.hidden) { openListbox(); } else { selectActiveOption(); closeListboxAndFocusTrigger(); }
         break;
       case ' ':
         if (allowSpaceToSelect) {
           e.preventDefault();
-          if (panel.hidden) { openListbox(); } else { selectActiveOption(); closeListbox(); trigger.focus(); }
+          if (panel.hidden) { openListbox(); } else { selectActiveOption(); closeListboxAndFocusTrigger(); }
         }
         break;
       case 'Escape':
-        closeListbox();
-        trigger.focus();
+        closeListboxAndFocusTrigger();
         break;
       case 'Home':
         if (!panel.hidden) { e.preventDefault(); moveActive(0); }
