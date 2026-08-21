@@ -8067,23 +8067,48 @@
   }
 
   // Google Apps Script Web App URL that appends each search to a Google
-  // Sheet (see doPost in apps-script-logger.gs). Sent as fire-and-forget
-  // so a slow/failed log call never blocks or delays the actual search.
+  // Sheet (see doPost in apps-script-logger.gs).
   var SHEET_LOG_URL = "https://script.google.com/macros/s/AKfycbzSfuH1XnttDU7o37QhoTD-sQxBP6IfMXZWOlVAH9fWqtcRXt5MQDhw5KVMxQaaRWPuqw/exec";
+
+  // NOTE: we deliberately do NOT use fetch() here. Apps Script's /exec
+  // endpoint responds with an internal redirect, and fetch() with
+  // mode:"no-cors" silently drops the POST body across that redirect —
+  // the request goes out but the sheet never receives the data. A hidden
+  // form posted into a hidden iframe follows redirects correctly and is
+  // the reliable way to deliver data to an Apps Script web app from a
+  // page hosted on a different origin (e.g. GitHub Pages).
+  var logIframe = null;
+  function ensureLogIframe() {
+    if (logIframe) { return logIframe; }
+    logIframe = document.createElement('iframe');
+    logIframe.name = 'gserp-log-frame';
+    logIframe.style.display = 'none';
+    document.body.appendChild(logIframe);
+    return logIframe;
+  }
 
   function logSearchToSheet(q, c) {
     if (!SHEET_LOG_URL) { return; }
     try {
-      fetch(SHEET_LOG_URL, {
-        method: "POST",
-        mode: "no-cors", // Apps Script doesn't answer CORS preflight; we
-                          // don't need to read the response anyway.
-        headers: { "Content-Type": "text/plain;charset=utf-8" }, // avoids
-                          // a CORS preflight (application/json would trigger one)
-        body: JSON.stringify({ query: q, country: c[0], gl: c[1], hl: c[2] })
-      }).catch(function(){ /* logging failure should never break search */ });
+      ensureLogIframe();
+
+      var form = document.createElement('form');
+      form.action = SHEET_LOG_URL;
+      form.method = 'POST';
+      form.target = 'gserp-log-frame';
+      form.style.display = 'none';
+
+      var payload = document.createElement('input');
+      payload.type = 'hidden';
+      payload.name = 'payload';
+      payload.value = JSON.stringify({ query: q, country: c[0], gl: c[1], hl: c[2] });
+      form.appendChild(payload);
+
+      document.body.appendChild(form);
+      form.submit();
+      document.body.removeChild(form);
     } catch (e) {
-      // fetch not available or blocked — silently ignore, search still works
+      // logging failure should never break the actual search
     }
   }
 
