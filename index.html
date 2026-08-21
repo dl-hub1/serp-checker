@@ -7055,7 +7055,7 @@
     </div>
     <div class="gserp-geo-tag">
       <span class="gserp-geo-label">GEO</span>
-      <span class="gserp-geo-value" id="geoValue">gl=in · hl=en · google.co.in</span>
+      <span class="gserp-geo-value" id="geoValue">gl=in · hl=en · google.com</span>
     </div>
   </div>
 
@@ -7092,6 +7092,7 @@
 </div>
 </div>
 
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap');
 
@@ -7676,7 +7677,7 @@
     ["Guyana","gy","en","google.com"],
     ["Haiti","ht","fr","google.com"],
     ["Honduras","hn","es","google.com"],
-    ["Hong Kong","hk","zh-TW","google.com"],
+    ["Hong Kong","hk","zh-HK","google.com"],
     ["Hungary","hu","hu","google.com"],
     ["Iceland","is","is","google.com"],
     ["India","in","en","google.com"],
@@ -7704,7 +7705,7 @@
     ["Liechtenstein","li","de","google.com"],
     ["Lithuania","lt","lt","google.com"],
     ["Luxembourg","lu","fr","google.com"],
-    ["Macau","mo","zh-TW","google.com"],
+    ["Macau","mo","zh-HK","google.com"],
     ["Madagascar","mg","fr","google.com"],
     ["Malawi","mw","en","google.com"],
     ["Malaysia","my","ms","google.com"],
@@ -7959,6 +7960,7 @@
     opts[idx].classList.add('gserp-option-active');
     if (typeof opts[idx].scrollIntoView === 'function') { opts[idx].scrollIntoView({ block: 'nearest' }); }
     trigger.setAttribute('aria-activedescendant', opts[idx].id);
+    searchInput.setAttribute('aria-activedescendant', opts[idx].id);
   }
 
   // Highlights the rendered <li> whose data-index matches an original
@@ -8041,8 +8043,48 @@
   trigger.addEventListener('keydown', function(e){ handleComboKeydown(e, true); });
   searchInput.addEventListener('keydown', function(e){ handleComboKeydown(e, false); });
 
+  // Builds Google's undocumented "uule" parameter, which SEO tools use to
+  // simulate a location far more precisely than gl/hl alone. Format is a
+  // fixed prefix + base64 of (length-byte + canonical location name).
+  function toUule(locationName) {
+    try {
+      var raw = String.fromCharCode(locationName.length) + locationName;
+      return "w+CAIQICI" + btoa(raw);
+    } catch (e) {
+      return "";
+    }
+  }
+
   function buildUrl(q, c) {
-    return "https://" + c[3] + "/search?q=" + encodeURIComponent(q) + "&gl=" + c[1] + "&hl=" + c[2] + "&pws=0&num=20";
+    var uule = toUule(c[0]);
+    // Cache-busting timestamp so repeated searches don't just serve back
+    // a previously cached/personalized result set for the same query.
+    var cacheBust = Date.now();
+    var url = "https://" + c[3] + "/search?q=" + encodeURIComponent(q) + "&gl=" + c[1] + "&hl=" + c[2] + "&pws=0&num=20";
+    if (uule) { url += "&uule=" + encodeURIComponent(uule); }
+    url += "&_ts=" + cacheBust;
+    return url;
+  }
+
+  // Google Apps Script Web App URL that appends each search to a Google
+  // Sheet (see doPost in apps-script-logger.gs). Sent as fire-and-forget
+  // so a slow/failed log call never blocks or delays the actual search.
+  var SHEET_LOG_URL = "https://script.google.com/macros/s/AKfycbzSfuH1XnttDU7o37QhoTD-sQxBP6IfMXZWOlVAH9fWqtcRXt5MQDhw5KVMxQaaRWPuqw/exec";
+
+  function logSearchToSheet(q, c) {
+    if (!SHEET_LOG_URL) { return; }
+    try {
+      fetch(SHEET_LOG_URL, {
+        method: "POST",
+        mode: "no-cors", // Apps Script doesn't answer CORS preflight; we
+                          // don't need to read the response anyway.
+        headers: { "Content-Type": "text/plain;charset=utf-8" }, // avoids
+                          // a CORS preflight (application/json would trigger one)
+        body: JSON.stringify({ query: q, country: c[0], gl: c[1], hl: c[2] })
+      }).catch(function(){ /* logging failure should never break search */ });
+    } catch (e) {
+      // fetch not available or blocked — silently ignore, search still works
+    }
   }
 
   function runSearch() {
@@ -8056,6 +8098,7 @@
     }
     var c = countries[currentIndex];
     var url = buildUrl(q, c);
+    logSearchToSheet(q, c);
 
     var win = null;
     try {
